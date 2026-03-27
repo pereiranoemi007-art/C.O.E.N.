@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Editar Evento</h1>
+<form method="post" class="row g-2">
+  <div class="col-md-6"><input name="nombre" class="form-control" placeholder="Nombre" value="{{ evento.nombre }}" required></div>
+  <div class="col-md-3"><input name="cantidad" class="form-control" placeholder="Personas" value="{{ evento.cantidad_personas }}" required></div>
+  <div class="col-md-3">
+    <select name="tipo" class="form-select" required>
+      <option value="">Seleccione tipo</option>
+      <option value="Dorcas" {% if evento.tipo_actividad == 'Dorcas' %}selected{% endif %}>Dorcas</option>
+      <option value="Varones" {% if evento.tipo_actividad == 'Varones' %}selected{% endif %}>Varones</option>
+      <option value="Jovenes" {% if evento.tipo_actividad == 'Jovenes' %}selected{% endif %}>Jovenes</option>
+    </select>
+  </div>
+  <div class="col-12 mt-2">
+    <button class="btn btn-primary">Guardar</button>
+    <a class="btn btn-danger ms-2" href="/eventos/{{ evento.id }}/delete" onclick="return confirm('Eliminar evento?')">Eliminar</a>
+    <a class="btn btn-secondary ms-2" href="/eventos">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

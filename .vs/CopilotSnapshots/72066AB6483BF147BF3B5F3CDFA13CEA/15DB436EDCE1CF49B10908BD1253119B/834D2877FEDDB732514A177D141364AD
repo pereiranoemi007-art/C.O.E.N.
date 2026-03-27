@@ -1,0 +1,26 @@
+﻿<h1>Tesorería</h1>
+
+<form method="post">
+    <select name="evento">
+        {% for e in eventos %}
+        <option value="{{e.id}}">{{e.nombre}}</option>
+        {% endfor %}
+    </select>
+
+    <input name="motivo" placeholder="Motivo">
+    <input name="monto" placeholder="Monto">
+    <button>Agregar</button>
+</form>
+
+<table border="1">
+<tr><th>Motivo</th><th>Monto</th></tr>
+
+{% for t in datos %}
+<tr>
+<td>{{t.motivo}}</td>
+<td>{{t.monto}}</td>
+</tr>
+{% endfor %}
+</table>
+
+<a href="/">Volver</a>

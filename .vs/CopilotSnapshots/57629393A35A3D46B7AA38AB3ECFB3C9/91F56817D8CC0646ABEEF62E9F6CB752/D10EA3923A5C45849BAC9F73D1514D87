@@ -1,0 +1,311 @@
+﻿import sqlite3
+
+class Database:
+    def __init__(self, filename='coen.db'):
+        self.conn = sqlite3.connect(filename, check_same_thread=False)
+        self.conn.row_factory = sqlite3.Row
+        self.cursor = self.conn.cursor()
+        # Enable foreign key support in SQLite
+        self.conn.execute('PRAGMA foreign_keys = ON')
+        self.create_tables()  # 👈 se crean automáticamente
+
+    # ==========================
+    # CREAR TABLAS
+    # ==========================
+    def create_tables(self):
+
+        # Tabla Articulos (usada por la aplicación)
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS Articulos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            precio REAL NOT NULL,
+            unidad_compra TEXT
+        )
+        """)
+        # Asegurar columnas existentes en bases antiguas
+        self._add_column_if_missing('Articulos', 'unidad_compra', 'TEXT')
+        # Categoría de artículo (Dorcas, Varones, Jovenes)
+        self._add_column_if_missing('Articulos', 'categoria', 'TEXT')
+
+        # Tabla Eventos
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS Eventos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            cantidad_personas INTEGER,
+            tipo_actividad TEXT,
+            closed INTEGER DEFAULT 0
+        )
+        """)
+        # Asegurar columnas existentes en bases antiguas
+        self._add_column_if_missing('Eventos', 'cantidad_personas', 'INTEGER')
+        self._add_column_if_missing('Eventos', 'tipo_actividad', 'TEXT')
+        self._add_column_if_missing('Eventos', 'closed', 'INTEGER DEFAULT 0')
+
+        # Tabla Compras
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS Compras (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT,
+            evento_id INTEGER,
+            FOREIGN KEY (evento_id) REFERENCES Eventos(id) ON DELETE CASCADE
+        )
+        """)
+        # Asegurar columnas existentes en bases antiguas
+        self._add_column_if_missing('Compras', 'nombre', 'TEXT')
+        self._add_column_if_missing('Compras', 'evento_id', 'INTEGER')
+
+        # Tabla CompraDetalle
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS CompraDetalle (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            compra_id INTEGER,
+            articulo_id INTEGER,
+            cantidad REAL,
+            precio_total REAL,
+            FOREIGN KEY (compra_id) REFERENCES Compras(id) ON DELETE CASCADE,
+            FOREIGN KEY (articulo_id) REFERENCES Articulos(id)
+        )
+        """)
+        # Asegurar columnas existentes en bases antiguas
+        self._add_column_if_missing('CompraDetalle', 'compra_id', 'INTEGER')
+        self._add_column_if_missing('CompraDetalle', 'articulo_id', 'INTEGER')
+        self._add_column_if_missing('CompraDetalle', 'cantidad', 'REAL')
+        self._add_column_if_missing('CompraDetalle', 'precio_total', 'REAL')
+        # columna opcional usada por la app de escritorio
+        self._add_column_if_missing('CompraDetalle', 'precio_unit', 'REAL')
+        # backfill precio_unit for existing rows when possible
+        try:
+            self.cursor.execute("UPDATE CompraDetalle SET precio_unit = precio_total / NULLIF(cantidad,0) WHERE (precio_unit IS NULL OR precio_unit = '') AND cantidad IS NOT NULL AND cantidad <> 0")
+            self.conn.commit()
+        except Exception:
+            pass
+
+        # Tabla Comidas
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS Comidas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            descripcion TEXT
+        )
+        """)
+        # Asegurar compatibilidad: agregar columna 'nombre' si existe en esquemas antiguos
+        self._add_column_if_missing('Comidas', 'nombre', 'TEXT')
+
+        # Normalizar la tabla Comidas a esquema consistente (id, descripcion)
+        try:
+            self._normalize_comidas_table()
+        except Exception:
+            # no bloquear inicio por errores de migración
+            pass
+        # Asegurar columnas existentes en bases antiguas
+        self._add_column_if_missing('Comidas', 'descripcion', 'TEXT')
+
+        # Tabla ComidaDetalle
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS ComidaDetalle (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            comida_id INTEGER,
+            articulo_id INTEGER,
+            cant_jov REAL,
+            cant_dor REAL,
+            cant_var REAL,
+            FOREIGN KEY (comida_id) REFERENCES Comidas(id) ON DELETE CASCADE,
+            FOREIGN KEY (articulo_id) REFERENCES Articulos(id)
+        )
+        """)
+
+        # Tabla Gastos (gastos generales) - definidos por articulos similar a Comidas
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS Gastos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            descripcion TEXT
+        )
+        """)
+        # compatibilidad columna nombre
+        self._add_column_if_missing('Gastos', 'nombre', 'TEXT')
+
+        # Detalle de gasto por articulo: cantidades por tipo (jov, dor, var)
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS GastoDetalle (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            gasto_id INTEGER,
+            articulo_id INTEGER,
+            cant_jov REAL,
+            cant_dor REAL,
+            cant_var REAL,
+            FOREIGN KEY (gasto_id) REFERENCES Gastos(id) ON DELETE CASCADE,
+            FOREIGN KEY (articulo_id) REFERENCES Articulos(id)
+        )
+        """)
+
+        # Detalle manual dentro de un gasto (líneas tipo factura)
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS GastoManual (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            gasto_id INTEGER,
+            descripcion TEXT,
+            cantidad REAL,
+            por_persona INTEGER DEFAULT 0,
+            valor REAL,
+            FOREIGN KEY (gasto_id) REFERENCES Gastos(id) ON DELETE CASCADE
+        )
+        """)
+        # asegurar columnas por compatibilidad
+        self._add_column_if_missing('GastoManual', 'descripcion', 'TEXT')
+        self._add_column_if_missing('GastoManual', 'cantidad', 'REAL')
+        self._add_column_if_missing('GastoManual', 'por_persona', 'INTEGER')
+        self._add_column_if_missing('GastoManual', 'valor', 'REAL')
+
+        # Tabla que vincula un gasto general a un evento (similar a EventoDetalle)
+        # Permite indicar un 'momento' y un monto manual asociado al gasto para ese evento
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS EventoGasto (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            evento_id INTEGER,
+            gasto_id INTEGER,
+            momento TEXT,
+            monto_manual REAL,
+            FOREIGN KEY (evento_id) REFERENCES Eventos(id) ON DELETE CASCADE,
+            FOREIGN KEY (gasto_id) REFERENCES Gastos(id) ON DELETE CASCADE
+        )
+        """)
+        self._add_column_if_missing('EventoGasto', 'momento', 'TEXT')
+        self._add_column_if_missing('EventoGasto', 'monto_manual', 'REAL')
+
+        # Tabla EventoDetalle: relaciona eventos con comidas (usada por reportes)
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS EventoDetalle (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            evento_id INTEGER,
+            comida_id INTEGER,
+            momento TEXT,
+            FOREIGN KEY (evento_id) REFERENCES Eventos(id) ON DELETE CASCADE,
+            FOREIGN KEY (comida_id) REFERENCES Comidas(id) ON DELETE CASCADE
+        )
+        """)
+        # asegurar columna momento
+        self._add_column_if_missing('EventoDetalle', 'momento', 'TEXT')
+
+        # Tabla Tesoreria
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS Tesoreria (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            evento_id INTEGER,
+            motivo TEXT,
+            monto REAL,
+            FOREIGN KEY (evento_id) REFERENCES Eventos(id) ON DELETE SET NULL
+        )
+        """)
+        # Asegurar columnas existentes en bases antiguas
+        self._add_column_if_missing('Tesoreria', 'evento_id', 'INTEGER')
+        self._add_column_if_missing('Tesoreria', 'motivo', 'TEXT')
+        self._add_column_if_missing('Tesoreria', 'monto', 'REAL')
+
+        self.conn.commit()
+
+    def _add_column_if_missing(self, table, column, definition):
+        # comprueba columnas existentes y agrega si falta (ALTER TABLE ... ADD COLUMN)
+        self.cursor.execute(f"PRAGMA table_info({table})")
+        cols = [r['name'] for r in self.cursor.fetchall()]
+        if column not in cols:
+            self.cursor.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+            self.conn.commit()
+
+    def has_column(self, table, column):
+        """Devuelve True si la tabla tiene la columna."""
+        self.cursor.execute(f"PRAGMA table_info({table})")
+        cols = [r['name'] for r in self.cursor.fetchall()]
+        return column in cols
+
+    def _normalize_comidas_table(self):
+        """Asegura que la tabla Comidas tenga solo (id, descripcion).
+        Copia datos desde 'nombre' si hace falta y recrea la tabla si detecta columnas extra.
+        """
+        # obtener columnas actuales
+        self.cursor.execute("PRAGMA table_info(Comidas)")
+        cols = [r['name'] for r in self.cursor.fetchall()]
+
+        # si ya es (id, descripcion) no hacer nada
+        if cols == ['id', 'descripcion'] or (set(cols) >= {'id', 'descripcion'} and len(cols) == 2):
+            return
+
+        # crear tabla temporal con esquema correcto
+        self.cursor.execute("CREATE TABLE IF NOT EXISTS _Comidas_new (id INTEGER PRIMARY KEY AUTOINCREMENT, descripcion TEXT)")
+
+        # copiar datos: preferir descripcion, si no existe usar nombre
+        try:
+            if 'nombre' in cols and 'descripcion' in cols:
+                self.cursor.execute("INSERT INTO _Comidas_new (id, descripcion) SELECT id, COALESCE(descripcion, nombre) FROM Comidas")
+            elif 'descripcion' in cols:
+                self.cursor.execute("INSERT INTO _Comidas_new (id, descripcion) SELECT id, descripcion FROM Comidas")
+            elif 'nombre' in cols:
+                self.cursor.execute("INSERT INTO _Comidas_new (id, descripcion) SELECT id, nombre FROM Comidas")
+            else:
+                # no hay columnas esperadas, intentar copiar id y colocar descripcion vacía
+                self.cursor.execute("INSERT INTO _Comidas_new (id, descripcion) SELECT id, '' FROM Comidas")
+
+            self.conn.commit()
+
+            # verificar que la copia contiene al menos una fila si la tabla original tenía filas
+            self.cursor.execute('SELECT COUNT(1) AS cnt FROM Comidas')
+            old_cnt = self.cursor.fetchone()['cnt']
+            self.cursor.execute('SELECT COUNT(1) AS cnt FROM _Comidas_new')
+            new_cnt = self.cursor.fetchone()['cnt']
+
+            # si la copia parece vacía mientras la original no lo está, abortar para no perder datos
+            if old_cnt > 0 and new_cnt == 0:
+                # no realizar reemplazo porque la migración no pudo copiar datos
+                return
+
+            # reemplazar tabla antigua de forma segura
+            try:
+                # desactivar temporariamente las FK para operaciones DDL seguras
+                self.conn.execute('PRAGMA foreign_keys = OFF')
+                self.cursor.execute('BEGIN')
+                self.cursor.execute("DROP TABLE IF EXISTS Comidas")
+                self.cursor.execute("ALTER TABLE _Comidas_new RENAME TO Comidas")
+                self.conn.commit()
+            finally:
+                try:
+                    self.conn.execute('PRAGMA foreign_keys = ON')
+                except Exception:
+                    pass
+
+        except Exception:
+            # si cualquier paso falla dejar la tabla original intacta y no propagar la excepción
+            try:
+                self.conn.rollback()
+            except Exception:
+                pass
+            return
+
+    # ==========================
+    # EJECUTAR (INSERT, UPDATE, DELETE)
+    # ==========================
+    def execute(self, query, params=()):
+        self.cursor.execute(query, params)
+        self.conn.commit()
+        return self.cursor.lastrowid
+
+    # ==========================
+    # OBTENER MUCHOS
+    # ==========================
+    def fetchall(self, query, params=()):
+        self.cursor.execute(query, params)
+        rows = self.cursor.fetchall()
+        return [dict(row) for row in rows]
+
+    # ==========================
+    # OBTENER UNO
+    # ==========================
+    def fetchone(self, query, params=()):
+        self.cursor.execute(query, params)
+        row = self.cursor.fetchone()
+        return dict(row) if row else None
+
+    # ==========================
+    # CERRAR CONEXIÓN
+    # ==========================
+    def close(self):
+        self.conn.close()

@@ -1,0 +1,89 @@
+﻿import sqlite3
+from sqlite3 import Connection
+
+class Database:
+    def __init__(self, filename='coen.db'):
+        self.conn: Connection = sqlite3.connect(filename)
+        self.conn.row_factory = sqlite3.Row
+        self.cursor = self.conn.cursor()
+
+    def create_tables(self):
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS Articulos(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nombre TEXT NOT NULL,
+                precio REAL NOT NULL DEFAULT 0,
+                unidad_compra REAL
+            )
+        ''')
+
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS Comidas(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                descripcion TEXT
+            )
+        ''')
+
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS ComidaDetalle(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                comida_id INTEGER,
+                articulo_id INTEGER,
+                cant_jov REAL,
+                cant_dor REAL,
+                cant_var REAL
+            )
+        ''')
+
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS Compras(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nombre TEXT
+            )
+        ''')
+
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS CompraDetalle(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                compra_id INTEGER,
+                articulo_id INTEGER,
+                cantidad REAL,
+                precio_total REAL
+            )
+        ''')
+
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS Eventos(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nombre TEXT,
+                cantidad_personas INTEGER,
+                tipo_actividad TEXT
+            )
+        ''')
+
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS EventoDetalle(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                evento_id INTEGER,
+                comida_id INTEGER,
+                momento TEXT
+            )
+        ''')
+
+        self.conn.commit()
+
+    def execute(self, query, params=()):
+        self.cursor.execute(query, params)
+        self.conn.commit()
+        return self.cursor
+
+    def fetchall(self, query, params=()):
+        self.cursor.execute(query, params)
+        return self.cursor.fetchall()
+
+    def fetchone(self, query, params=()):
+        self.cursor.execute(query, params)
+        return self.cursor.fetchone()
+
+    def close(self):
+        self.conn.close()

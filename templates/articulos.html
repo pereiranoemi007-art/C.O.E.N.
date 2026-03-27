@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h1>Artículos</h1>
+
+<!-- FORMULARIO PARA AGREGAR -->
+<form method="post" class="row g-2 mb-3">
+    <div class="col-md-6">
+        <input name="nombre" class="form-control" placeholder="Nombre" required>
+    </div>
+    <div class="col-md-3">
+        <input name="precio" class="form-control" placeholder="Precio" required>
+    </div>
+    <div class="col-md-3">
+        <input name="unidad" class="form-control" placeholder="Unidad">
+    </div>
+    <div class="col-12">
+        <button class="btn btn-primary">Agregar</button>
+    </div>
+</form>
+
+<!-- FORMULARIO PARA EDITAR -->
+{% if editar %}
+<h2>Editar artículo</h2>
+<form method="post" action="/actualizar_articulo/{{ editar.id }}" class="row g-2 mb-3">
+    <div class="col-md-6">
+        <input name="nombre" value="{{ editar.nombre }}" class="form-control" required>
+    </div>
+    <div class="col-md-3">
+        <input name="precio" value="{{ editar.precio }}" class="form-control" required>
+    </div>
+    <div class="col-md-3">
+        <input name="unidad" value="{{ editar.unidad_compra }}" class="form-control">
+    </div>
+    <div class="col-12">
+        <button class="btn btn-success">Guardar cambios</button>
+        <a href="/articulos" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
+{% endif %}
+
+<!-- TABLA -->
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Precio</th>
+            <th>Unidad</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for d in datos %}
+        <tr>
+            <td>{{ d.id }}</td>
+            <td>{{ d.nombre }}</td>
+            <td>{{ d.precio }}</td>
+            <td>{{ d.unidad_compra if 'unidad_compra' in d else '' }}</td>
+            <td>
+                <a href="/articulos?editar={{ d.id }}" class="btn btn-sm btn-warning">Editar</a>
+                <a href="/eliminar_articulo/{{ d.id }}" class="btn btn-sm btn-danger">Eliminar</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

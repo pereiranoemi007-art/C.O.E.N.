@@ -1,0 +1,25 @@
+﻿{% extends 'base.html' %}
+{% block content %}
+<h1>Eventos</h1>
+<form method="post" class="row g-2 mb-3">
+  <div class="col-md-6"><input name="nombre" class="form-control" placeholder="Nombre" required></div>
+  <div class="col-md-3"><input name="cantidad" class="form-control" placeholder="Personas" required></div>
+  <div class="col-md-3"><input name="tipo" class="form-control" placeholder="Tipo" required></div>
+  <div class="col-12"><button class="btn btn-primary">Agregar</button></div>
+</form>
+
+<table class="table table-striped">
+  <thead><tr><th>ID</th><th>Nombre</th><th>Cantidad</th><th>Tipo</th></tr></thead>
+  <tbody>
+    {% for d in datos %}
+    <tr>
+      <td>{{ d.id }}</td>
+      <td>{{ d.nombre }}</td>
+      <td>{{ d.cantidad_personas if 'cantidad_personas' in d else '' }}</td>
+      <td>{{ d.tipo_actividad if 'tipo_actividad' in d else '' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

@@ -1,0 +1,31 @@
+﻿{% extends 'base.html' %}
+{% block content %}
+<h1>Borradores - Evento {{ evento_id }}</h1>
+{% for b in borradores_list %}
+  <div class="card mb-2">
+    <div class="card-body">
+      <h5>Borrador #{{ b.compra_id }}</h5>
+      <table class="table table-sm">
+        <thead><tr><th>Artículo</th><th>Cantidad</th><th>Precio unit</th><th>Total</th><th></th></tr></thead>
+        <tbody>
+          {% for it in b.items %}
+          <tr>
+            <td>{{ it.articulo }}</td>
+            <td>{{ it.cantidad }}</td>
+            <td>{{ it.precio_unit }}</td>
+            <td>{{ it.precio_total }}</td>
+            <td>
+              <a class="btn btn-sm btn-outline-primary" href="/compras/editar_linea/{{ it.id }}">Editar línea</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <form method="post" action="/compras/confirm/{{ b.compra_id }}">
+        <button class="btn btn-success">Confirmar BORRADOR</button>
+        <a href="/compras?evento={{ evento_id }}" class="btn btn-secondary ms-2">Volver</a>
+      </form>
+    </div>
+  </div>
+{% endfor %}
+{% endblock %}

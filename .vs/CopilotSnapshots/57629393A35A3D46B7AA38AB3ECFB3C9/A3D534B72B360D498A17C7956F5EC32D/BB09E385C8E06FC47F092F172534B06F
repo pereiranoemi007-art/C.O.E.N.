@@ -1,0 +1,52 @@
+﻿{% extends 'base.html' %}
+{% block content %}
+<h1>Pagos - Evento: {{ evento.nombre }}</h1>
+
+<form method="post">
+  <div class="row mb-2">
+    <div class="col-md-4"><input name="nombre" class="form-control" placeholder="Nombre pago"></div>
+    <div class="col-md-3"><input name="fecha" class="form-control" placeholder="Fecha (YYYY-MM-DD)"></div>
+  </div>
+
+  <h4>Detalle</h4>
+  <div id="detalles">
+    <div class="row mb-2">
+      <div class="col-md-6"><input name="desc" class="form-control" placeholder="Descripción"></div>
+      <div class="col-md-3"><input name="cantidad" class="form-control" placeholder="Cantidad"></div>
+      <div class="col-md-3"><input name="valor" class="form-control" placeholder="Valor"></div>
+    </div>
+  </div>
+  <button type="button" class="btn btn-secondary" onclick="addDetalle()">Agregar línea</button>
+  <button class="btn btn-primary">Registrar pago</button>
+</form>
+
+<hr>
+<h3>Pagos registrados</h3>
+<table class="table">
+  <thead><tr><th>Pago</th><th>Descripción</th><th>Cantidad</th><th>Valor</th><th>Subtotal</th></tr></thead>
+  <tbody>
+    {% for d in detalles %}
+    <tr>
+      <td>{{ d.nombre }}</td>
+      <td>{{ d.descripcion }}</td>
+      <td>{{ d.cantidad }}</td>
+      <td>{{ d.valor }}</td>
+      <td>{{ (d.cantidad or 0) * (d.valor or 0) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<script>
+function addDetalle(){
+  const c = document.createElement('div')
+  c.className='row mb-2'
+  c.innerHTML = `\
+    <div class="col-md-6"><input name="desc" class="form-control" placeholder="Descripción"></div>\
+    <div class="col-md-3"><input name="cantidad" class="form-control" placeholder="Cantidad"></div>\
+    <div class="col-md-3"><input name="valor" class="form-control" placeholder="Valor"></div>`
+  document.getElementById('detalles').appendChild(c)
+}
+</script>
+
+{% endblock %}

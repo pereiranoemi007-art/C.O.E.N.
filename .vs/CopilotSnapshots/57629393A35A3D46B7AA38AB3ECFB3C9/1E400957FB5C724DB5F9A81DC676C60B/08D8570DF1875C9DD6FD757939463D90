@@ -1,0 +1,26 @@
+﻿{% extends 'base.html' %}
+{% block content %}
+<h1>Checklist de compras - Evento {{ evento_id }}</h1>
+<p>Seleccione artículos y marque cantidad comprada.</p>
+
+<table class="table">
+  <thead><tr><th>Artículo</th><th>Saldo</th><th></th></tr></thead>
+  <tbody>
+    {% for it in lista %}
+    <tr>
+      <td>{{ it.nombre }}</td>
+      <td>{{ it.resta }}</td>
+      <td>
+        <form method="post" action="/eventos/{{ evento_id }}/mark_purchased" style="display:inline-block">
+          <input type="hidden" name="articulo_id" value="{{ it.articulo_id }}">
+          <input type="number" name="cantidad" step="any" min="0" class="form-control d-inline-block" style="width:120px; display:inline-block" value="{{ it.resta }}">
+          <button type="submit" class="btn btn-sm btn-primary ms-2">Compré</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<a href="/eventos/{{ evento_id }}" class="btn btn-secondary">Volver al evento</a>
+{% endblock %}

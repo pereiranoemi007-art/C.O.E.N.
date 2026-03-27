@@ -1,0 +1,199 @@
+﻿{% extends 'base.html' %}
+{% block content %}
+<h1>Compras</h1>
+
+<!-- MENSAJE -->
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <div class="alert alert-success">
+      {% for m in messages %}
+        {{ m }}
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<form method="post">
+
+      <div class="mb-3">
+      <label class="form-label">Evento</label>
+      <select name="evento" required id="evento_select" class="form-select">
+        <option value="">Seleccione evento</option>
+        {% for e in eventos %}
+        <option value="{{ e.id }}" {% if selected_event and selected_event|int == e.id %}selected{% endif %}>{{ e.nombre }} {% if e.closed %}(CERRADO){% endif %}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div id="filas"></div>
+
+    <h4>Compras BORRADOR (rápidas)</h4>
+    {% if selected_event %}
+      <a class="btn btn-sm btn-outline-secondary mb-2" href="/compras/borrador/{{ selected_event }}">Ver borrador</a>
+    {% endif %}
+
+    <div class="mt-2">
+      Total: <strong id="compras_sum">0.00</strong>
+    </div>
+
+    <button type="button" onclick="agregarFila()" id="btnAgregar" class="btn btn-secondary" disabled>
+        Agregar fila
+    </button>
+
+    <button type="submit" id="btnGuardar" class="btn btn-primary ms-2" disabled>
+        Guardar
+    </button>
+
+</form>
+
+{% if borradores_list and borradores_list|length > 0 %}
+<hr>
+<h3>Borradores (compras rápidas)</h3>
+{% for b in borradores_list %}
+  <div class="card mb-2">
+    <div class="card-body">
+      <h5 class="card-title">BORRADOR #{{ b.compra_id }}</h5>
+      <table class="table table-sm mb-2">
+        <thead><tr><th>Artículo</th><th>Cantidad</th><th>Precio unit</th><th>Total</th><th></th></tr></thead>
+        <tbody>
+          {% for it in b.lines %}
+          <tr>
+            <td>{{ it.articulo }}</td>
+            <td>{{ it.cantidad }}</td>
+            <td>{{ it.precio_unit }}</td>
+            <td>{{ it.precio_total }}</td>
+            <td>
+              <a class="btn btn-sm btn-outline-danger" href="/compras/eliminar/{{ b.compra_id }}">Eliminar compra</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <form method="post" action="/compras/confirm/{{ b.compra_id }}">
+        <button class="btn btn-sm btn-success">Confirmar BORRADOR</button>
+        <a class="btn btn-sm btn-warning ms-2" href="/eventos/{{ selected_event }}">Volver</a>
+      </form>
+    </div>
+  </div>
+{% endfor %}
+{% endif %}
+
+<hr>
+
+<h2>Compras guardadas</h2>
+
+<table class="table table-sm">
+    <thead><tr><th>ID</th><th>Artículo</th><th>Cantidad</th><th>Total</th></tr></thead>
+    <tbody>
+    {% for d in datos %}
+    <tr>
+      <td>{{ d.id }}</td>
+      <td>{{ d.articulo }}</td>
+      <td>{{ d.cantidad }}</td>
+      <td>{{ d.precio_total }}</td>
+      <td>
+        <a class="btn btn-sm btn-danger" href="/compras/eliminar/{{ d.compra_id }}">Eliminar compra</a>
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<script>
+const articulos = {{ articulos | tojson }}
+
+function habilitarFormulario() {
+    let evento = document.getElementById("evento_select").value
+
+    if (evento !== "") {
+        document.getElementById("btnAgregar").disabled = false
+        document.getElementById("btnGuardar").disabled = false
+
+        if (document.querySelectorAll(".fila").length === 0) {
+            agregarFila()
+        }
+    } else {
+        document.getElementById("btnAgregar").disabled = true
+        document.getElementById("btnGuardar").disabled = true
+    }
+}
+
+function agregarFila() {
+    let options = '<option value="">Seleccione artículo</option>'
+    options += articulos.map(a => 
+        `<option value="${a.id}">${a.nombre}</option>`
+    ).join('')
+
+    let html = `
+    <div class="fila row g-2 mb-2">
+      <div class="col-md-5">
+        <select name="articulo" required class="form-select">
+            ${options}
+        </select>
+      </div>
+      <div class="col-md-2"><input type="number" step="any" name="cantidad" placeholder="Cantidad" required class="form-control" oninput="recalcRow(this)"></div>
+      <div class="col-md-2"><input type="number" step="any" name="precio_unit" placeholder="Precio unit" class="form-control" oninput="recalcRow(this)"></div>
+      <div class="col-md-2"><input type="number" step="any" name="precio_total" placeholder="Total" required class="form-control" oninput="recalcRow(this)"></div>
+      <div class="col-md-1 d-grid">
+        <button type="button" class="btn btn-outline-danger" onclick="this.closest('.fila').remove(); recalcSum();">-</button>
+      </div>
+    </div>`;
+
+    document.getElementById("filas").insertAdjacentHTML('beforeend', html)
+}
+
+function eliminarFila(btn) {
+    btn.parentElement.remove()
+    recalcSum();
+}
+
+function recalcRow(el){
+  const row = el.closest('.fila');
+  const qty = parseFloat(row.querySelector('input[name="cantidad"]').value) || 0;
+  const unitIn = row.querySelector('input[name="precio_unit"]');
+  const totalIn = row.querySelector('input[name="precio_total"]');
+
+  const unit = parseFloat(unitIn.value);
+  const total = parseFloat(totalIn.value);
+
+  if (!isNaN(unit) && unitIn === el){
+    totalIn.value = (qty * unit).toFixed(2);
+  } else if (!isNaN(total) && totalIn === el){
+    if (qty>0) unitIn.value = (total/qty).toFixed(2);
+  } else {
+    // triggered by qty change: prefer unit if present
+    if (!isNaN(unit)) totalIn.value = (qty * unit).toFixed(2);
+    else if (!isNaN(total) && qty>0) unitIn.value = (total/qty).toFixed(2);
+  }
+  recalcSum();
+}
+
+function recalcSum(){
+  let sum = 0;
+  for (const r of document.querySelectorAll('.fila')){
+    const t = parseFloat(r.querySelector('input[name="precio_total"]').value) || 0;
+    sum += t;
+  }
+  const node = document.getElementById('compras_sum');
+  if(node) node.textContent = sum.toFixed(2);
+}
+
+// cuando cambia el select recargar la página con query param
+document.getElementById('evento_select').addEventListener('change', function(){
+  const ev = this.value;
+  const qs = new URLSearchParams(window.location.search);
+  if (ev) qs.set('evento', ev); else qs.delete('evento');
+  // set and reload
+  window.location.search = qs.toString();
+});
+
+// si el servidor pasó selected_event, habilitar formulario al cargar
+const _selected = "{{ selected_event or '' }}";
+if (_selected) {
+  const sel = document.getElementById('evento_select');
+  if (sel) sel.value = _selected;
+  habilitarFormulario();
+}
+</script>
+
+{% endblock %}

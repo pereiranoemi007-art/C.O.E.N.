@@ -1,0 +1,257 @@
+﻿from flask import Flask, render_template, request, redirect, flash
+from database import Database
+
+app = Flask(__name__)
+app.secret_key = "clave_secreta"  # 🔥 NECESARIO para flash
+
+db = Database('coen.db')
+
+
+# ======================
+# MENU
+# ======================
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+
+# ======================
+# ARTICULOS
+# ======================
+@app.route('/articulos', methods=['GET', 'POST'])
+def articulos():
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+        precio = request.form['precio']
+        unidad = request.form['unidad']
+
+        if nombre and precio:
+            db.execute(
+                "INSERT INTO Articulos(nombre, precio, unidad_compra) VALUES(?,?,?)",
+                (nombre, float(precio), unidad)
+            )
+
+    datos = db.fetchall("SELECT * FROM Articulos")
+    return render_template('articulos.html', datos=datos)
+
+
+@app.route('/eliminar_articulo/<int:id>')
+def eliminar_articulo(id):
+    db.execute("DELETE FROM Articulos WHERE id=?", (id,))
+    return redirect('/articulos')
+
+
+# ======================
+# EVENTOS
+# ======================
+@app.route('/eventos', methods=['GET', 'POST'])
+def eventos():
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+        cantidad = request.form['cantidad']
+        tipo = request.form['tipo']
+
+        if nombre and cantidad and tipo:
+            db.execute(
+                "INSERT INTO Eventos(nombre, cantidad_personas, tipo_actividad) VALUES(?,?,?)",
+                (nombre, int(cantidad), tipo)
+            )
+
+    datos = db.fetchall("SELECT * FROM Eventos")
+    return render_template('eventos.html', datos=datos)
+
+
+# ======================
+# TESORERIA
+# ======================
+@app.route('/tesoreria', methods=['GET', 'POST'])
+def tesoreria():
+    eventos = db.fetchall("SELECT * FROM Eventos")
+
+    if request.method == 'POST':
+        evento_id = request.form['evento']
+        motivo = request.form['motivo']
+        monto = request.form['monto']
+
+        if evento_id and motivo and monto:
+            db.execute(
+                "INSERT INTO Tesoreria(evento_id, motivo, monto) VALUES(?,?,?)",
+                (evento_id, motivo, float(monto))
+            )
+
+    datos = db.fetchall("SELECT * FROM Tesoreria")
+    return render_template('tesoreria.html', datos=datos, eventos=eventos)
+
+
+# ======================
+# COMPRAS
+# ======================
+
+@app.route('/compras', methods=['GET', 'POST'])
+def compras():
+    eventos = db.fetchall("SELECT * FROM Eventos")
+    articulos = db.fetchall("SELECT * FROM Articulos")
+
+    if request.method == 'POST':
+        evento_id = request.form.get('evento')
+
+        # 🔥 Borrar compras anteriores del evento
+        db.execute("""
+            DELETE FROM CompraDetalle 
+            WHERE compra_id IN (
+                SELECT id FROM Compras WHERE evento_id=?
+            )
+        """, (evento_id,))
+
+        db.execute(
+            "DELETE FROM Compras WHERE evento_id=?",
+            (evento_id,)
+        )
+
+        # 🔥 Insertar nueva compra
+        compra_id = db.execute(
+            "INSERT INTO Compras(nombre, evento_id) VALUES(?,?)",
+            ("Compra", evento_id)
+        )
+
+        # 🔥 Datos del formulario
+        articulos_ids = request.form.getlist('articulo')
+        cantidades = request.form.getlist('cantidad')
+        precios = request.form.getlist('precio')
+
+        for i in range(len(articulos_ids)):
+            if not articulos_ids[i]:
+                continue
+
+            try:
+                articulo_id = int(articulos_ids[i])
+                cantidad = float(cantidades[i])
+                precio = float(precios[i])
+            except:
+                continue
+
+            total = cantidad * precio
+
+            db.execute(
+                """INSERT INTO CompraDetalle
+                (compra_id, articulo_id, cantidad, precio_total)
+                VALUES(?,?,?,?)""",
+                (compra_id, articulo_id, cantidad, total)
+            )
+
+        flash("Compra guardada correctamente")
+
+    # 🔍 MOSTRAR DATOS EN PANTALLA
+    datos = db.fetchall("""
+        SELECT cd.id, cd.cantidad, cd.precio_total, a.nombre AS articulo
+        FROM CompraDetalle cd
+        LEFT JOIN Articulos a ON cd.articulo_id = a.id
+    """)
+
+    return render_template(
+        'compras.html',
+        eventos=eventos,
+        articulos=articulos,
+        datos=datos
+    )
+
+
+
+# # ======================
+# GUARDAR DETALLE COMIDA
+# ======================
+@app.route('/guardar_detalle', methods=['POST'])
+def guardar_detalle():
+    comida_id = request.form['comida_id']
+
+    db.execute("DELETE FROM ComidaDetalle WHERE comida_id=?", (comida_id,))
+
+    articulos_form = request.form.getlist('articulo')
+    jov = request.form.getlist('jov')
+    dor = request.form.getlist('dor')
+    var = request.form.getlist('var')
+
+    articulos_db = db.fetchall("SELECT * FROM Articulos")
+
+    for i in range(len(articulos_form)):
+        nombre = articulos_form[i]
+
+        if not nombre:
+            continue
+
+        articulo = next((a for a in articulos_db if a['nombre'] == nombre), None)
+        if not articulo:
+            continue
+
+        try:
+            cj = float(jov[i]) if jov[i] else 0
+            cd = float(dor[i]) if dor[i] else 0
+            cv = float(var[i]) if var[i] else 0
+        except:
+            continue
+
+        db.execute("""
+            INSERT INTO ComidaDetalle(comida_id, articulo_id, cant_jov, cant_dor, cant_var)
+            VALUES(?,?,?,?,?)
+        """, (comida_id, articulo['id'], cj, cd, cv))
+
+    return redirect('/comidas')
+
+
+# ======================
+# ELIMINAR COMIDA
+# ======================
+@app.route('/eliminar_comida/<int:id>')
+def eliminar_comida(id):
+    db.execute("DELETE FROM Comidas WHERE id=?", (id,))
+    return redirect('/comidas')
+
+
+# ======================
+# AGREGAR COMIDA
+# ======================
+@app.route('/add_comida', methods=['POST'])
+def add_comida():
+    desc = request.form['descripcion']
+
+    if desc:
+        # DBs older may have 'nombre' instead of 'descripcion'. Insert into whichever exists.
+        if db.has_column('Comidas', 'descripcion') and db.has_column('Comidas', 'nombre'):
+            db.execute("INSERT INTO Comidas(descripcion, nombre) VALUES(?,?)", (desc, desc))
+        elif db.has_column('Comidas', 'descripcion'):
+            db.execute("INSERT INTO Comidas(descripcion) VALUES(?)", (desc,))
+        elif db.has_column('Comidas', 'nombre'):
+            db.execute("INSERT INTO Comidas(nombre) VALUES(?)", (desc,))
+        else:
+            # fallback
+            db.execute("INSERT INTO Comidas(descripcion) VALUES(?)", (desc,))
+
+    return redirect('/comidas')
+
+
+# ======================
+# RUTA COMIDAS (WEB)
+# ======================
+@app.route('/comidas')
+def comidas():
+    comidas = db.fetchall("SELECT * FROM Comidas")
+    articulos = db.fetchall("SELECT * FROM Articulos")
+
+    # detalles por comida (se muestran en la UI y se filtran con JS)
+    detalles = db.fetchall(
+        """
+        SELECT cd.id, cd.comida_id, cd.articulo_id, a.nombre AS articulo,
+               cd.cant_jov, cd.cant_dor, cd.cant_var
+        FROM ComidaDetalle cd
+        LEFT JOIN Articulos a ON cd.articulo_id = a.id
+        """
+    )
+
+    return render_template('comidas.html', comidas=comidas, articulos=articulos, detalles=detalles)
+
+
+# ======================
+# RUN
+# ======================
+if __name__ == '__main__':
+    app.run(debug=True)

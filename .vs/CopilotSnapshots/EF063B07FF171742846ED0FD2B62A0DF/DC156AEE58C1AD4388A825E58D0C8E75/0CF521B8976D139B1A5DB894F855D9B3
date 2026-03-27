@@ -1,0 +1,170 @@
+﻿import tkinter as tk
+from tkinter import ttk, messagebox
+from database import Database
+
+class ComprasWindow(tk.Toplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title('Compras')
+        self.geometry('800x500')
+        self.db = Database('coen.db')
+        self.create_widgets()
+        self.load_compras()
+        self.load_articulos()
+
+    def create_widgets(self):
+        frm = ttk.Frame(self, padding=10)
+        frm.pack(expand=True, fill='both')
+
+        top = ttk.Frame(frm)
+        top.pack(fill='x')
+        ttk.Label(top, text='Nombre compra:').pack(side='left')
+        self.nombre = ttk.Entry(top)
+        self.nombre.pack(side='left', fill='x', expand=True, padx=5)
+        ttk.Button(top, text='Agregar Compra', command=self.add_compra).pack(side='left', padx=5)
+
+        mid = ttk.Frame(frm)
+        mid.pack(fill='both', expand=True, pady=10)
+
+        # Left: Compras list
+        left = ttk.Frame(mid)
+        left.pack(side='left', fill='y')
+        cols = ('id', 'nombre')
+        self.tree = ttk.Treeview(left, columns=cols, show='headings', height=15)
+        for c in cols:
+            self.tree.heading(c, text=c)
+        self.tree.pack(side='left')
+        self.tree.bind('<<TreeviewSelect>>', self.on_select_compra)
+
+        # Right: detalle editable
+        right = ttk.Frame(mid)
+        right.pack(side='left', fill='both', expand=True, padx=10)
+        hdr = ttk.Frame(right)
+        hdr.pack(fill='x')
+        ttk.Label(hdr, text='Detalle de compra').pack()
+        self.detalle_frame = ttk.Frame(right)
+        self.detalle_frame.pack(fill='both', expand=True)
+
+        btns = ttk.Frame(frm)
+        btns.pack(fill='x')
+        ttk.Button(btns, text='Guardar detalle', command=self.save_detalle).pack(side='left', padx=5)
+        ttk.Button(btns, text='Eliminar compra', command=self.delete_compra).pack(side='left', padx=5)
+
+        self.detalle_rows = []
+
+    def load_compras(self):
+        for r in self.tree.get_children():
+            self.tree.delete(r)
+        rows = self.db.fetchall('SELECT id, nombre FROM Compras')
+        for row in rows:
+            self.tree.insert('', 'end', values=(row['id'], row['nombre']))
+
+    def load_articulos(self):
+        self.articulos = self.db.fetchall('SELECT id, nombre, precio FROM Articulos')
+
+    def add_compra(self):
+        nombre = self.nombre.get().strip()
+        if not nombre:
+            messagebox.showerror('Error', 'Nombre requerido')
+            return
+        self.db.execute('INSERT INTO Compras(nombre) VALUES(?)', (nombre,))
+        self.nombre.delete(0, 'end')
+        self.load_compras()
+
+    def on_select_compra(self, event):
+        sel = self.tree.selection()
+        if not sel:
+            return
+        vals = self.tree.item(sel[0])['values']
+        self.compra_id = vals[0]
+        self.load_detalle()
+
+    def clear_detalle_ui(self):
+        for w in self.detalle_frame.winfo_children():
+            w.destroy()
+        self.detalle_rows = []
+
+    def load_detalle(self):
+        self.clear_detalle_ui()
+        rows = self.db.fetchall('SELECT cd.id, cd.articulo_id, a.nombre, cd.cantidad, cd.precio_total FROM CompraDetalle cd LEFT JOIN Articulos a ON cd.articulo_id=a.id WHERE cd.compra_id=?', (self.compra_id,))
+        for r in rows:
+            self.add_detalle_row(r['articulo_id'], r['nombre'], r['cantidad'], r['precio_total'], existing_id=r['id'])
+        self.add_detalle_row()
+
+    def add_detalle_row(self, articulo_id=None, nombre='', cantidad=None, precio_total=None, existing_id=None):
+        row = {}
+        frm = ttk.Frame(self.detalle_frame)
+        frm.pack(fill='x', pady=2)
+        cb = ttk.Combobox(frm, values=[a['nombre'] for a in self.articulos])
+        if articulo_id:
+            cb.set(nombre)
+        cb.pack(side='left', fill='x', expand=True, padx=2)
+        row['combobox'] = cb
+        e1 = ttk.Entry(frm, width=10)
+        if cantidad is not None:
+            e1.insert(0, str(cantidad))
+        e1.pack(side='left', padx=2)
+        row['cantidad'] = e1
+        lbl = ttk.Label(frm, text=str(precio_total) if precio_total is not None else '')
+        lbl.pack(side='left', padx=4)
+        row['precio_lbl'] = lbl
+        btn = ttk.Button(frm, text='X', width=3, command=lambda f=frm: self.remove_detalle_row(f))
+        btn.pack(side='left', padx=2)
+        # bind to update price when cantidad or articulo changes
+        cb.bind('<<ComboboxSelected>>', lambda e, r=row: self.update_precio(r))
+        e1.bind('<KeyRelease>', lambda e, r=row: self.update_precio(r))
+        row['frame'] = frm
+        row['id'] = existing_id
+        self.detalle_rows.append(row)
+
+    def remove_detalle_row(self, frame):
+        for r in list(self.detalle_rows):
+            if r['frame'] == frame:
+                r['frame'].destroy()
+                self.detalle_rows.remove(r)
+
+    def update_precio(self, row):
+        nombre = row['combobox'].get().strip()
+        articulo = next((a for a in self.articulos if a['nombre']==nombre), None)
+        try:
+            cantidad = float(row['cantidad'].get()) if row['cantidad'].get() else 0
+        except ValueError:
+            return
+        if articulo:
+            total = cantidad * (articulo['precio'] or 0)
+            row['precio_lbl'].config(text=f"{total:.2f}")
+        else:
+            row['precio_lbl'].config(text='')
+
+    def save_detalle(self):
+        if not hasattr(self, 'compra_id'):
+            messagebox.showwarning('Aviso', 'Seleccione una compra')
+            return
+        # delete existing
+        self.db.execute('DELETE FROM CompraDetalle WHERE compra_id=?', (self.compra_id,))
+        for r in self.detalle_rows:
+            nombre = r['combobox'].get().strip()
+            if not nombre:
+                continue
+            articulo = next((a for a in self.articulos if a['nombre']==nombre), None)
+            if not articulo:
+                continue
+            try:
+                cantidad = float(r['cantidad'].get()) if r['cantidad'].get() else 0
+            except ValueError:
+                messagebox.showerror('Error', 'Cantidad inválida')
+                return
+            precio_total = cantidad * (articulo['precio'] or 0)
+            self.db.execute('INSERT INTO CompraDetalle(compra_id, articulo_id, cantidad, precio_total) VALUES(?,?,?,?)', (self.compra_id, articulo['id'], cantidad, precio_total))
+        messagebox.showinfo('OK', 'Detalle guardado')
+
+    def delete_compra(self):
+        sel = self.tree.selection()
+        if not sel:
+            messagebox.showwarning('Aviso', 'Seleccione una compra')
+            return
+        vals = self.tree.item(sel[0])['values']
+        if messagebox.askyesno('Confirmar', f'Eliminar compra {vals[1]}?'):
+            self.db.execute('DELETE FROM Compras WHERE id=?', (vals[0],))
+            self.load_compras()
+            self.clear_detalle_ui()
