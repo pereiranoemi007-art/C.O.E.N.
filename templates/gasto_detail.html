@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Detalle Gasto: {{ gasto.descripcion or gasto.nombre }}</h1>
+
+<form method="post" action="/gastos/{{ gasto.id }}/add_line">
+  <div class="row">
+    <div class="col-md-6">
+      <label class="form-label">Artículo</label>
+      <select name="articulo_id" class="form-select">
+        <option value="">--Seleccione--</option>
+        {% for a in articulos %}
+        <option value="{{ a.id }}">{{ a.nombre }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Jov</label>
+      <input name="jov" class="form-control">
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Dor</label>
+      <input name="dor" class="form-control">
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Var</label>
+      <input name="var" class="form-control">
+    </div>
+  </div>
+  <div class="mt-3">
+    <button class="btn btn-primary">Agregar línea</button>
+  </div>
+</form>
+
+<hr>
+<h2>Detalle actual</h2>
+<table class="table">
+  <thead><tr><th>Artículo</th><th>Jov</th><th>Dor</th><th>Var</th><th>Acciones</th></tr></thead>
+  <tbody>
+    {% for d in detalle %}
+    <tr>
+      <td>{{ d.nombre }}</td>
+      <td>{{ d.cant_jov }}</td>
+      <td>{{ d.cant_dor }}</td>
+      <td>{{ d.cant_var }}</td>
+      <td><a href="/gastos/{{ gasto.id }}/delete_line/{{ d.id }}" class="btn btn-sm btn-danger">Eliminar</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<hr>
+<h2>Líneas manuales (Factura)</h2>
+<form method="post" action="/gastos/{{ gasto.id }}/add_manual">
+  <div class="row">
+    <div class="col-md-6">
+      <label class="form-label">Descripción</label>
+      <input name="descripcion" class="form-control">
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Cantidad</label>
+      <input name="cantidad" class="form-control">
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Por persona</label>
+      <div class="form-check"><input type="checkbox" name="por_persona" class="form-check-input" /></div>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Valor</label>
+      <input name="valor" class="form-control">
+    </div>
+  </div>
+  <div class="mt-3"><button class="btn btn-primary">Agregar línea manual</button></div>
+</form>
+
+<table class="table mt-3">
+  <thead><tr><th>Descripción</th><th>Cantidad</th><th>Por persona</th><th>Valor</th><th>Acciones</th></tr></thead>
+  <tbody>
+    {% for m in manuals %}
+    <tr>
+      <td>{{ m.descripcion }}</td>
+      <td>{{ m.cantidad }}</td>
+      <td>{{ 'Sí' if m.por_persona else 'No' }}</td>
+      <td>{{ m.valor }}</td>
+      <td><a href="/gastos/{{ gasto.id }}/delete_manual/{{ m.id }}" class="btn btn-sm btn-danger">Eliminar</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<!-- El enlace a evento se realiza desde la vista del evento; formulario eliminado -->
+{% endblock %}

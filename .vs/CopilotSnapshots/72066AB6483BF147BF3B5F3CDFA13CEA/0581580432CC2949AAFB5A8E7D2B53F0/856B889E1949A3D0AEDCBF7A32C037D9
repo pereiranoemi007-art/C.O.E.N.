@@ -1,0 +1,23 @@
+﻿<h1>Artículos</h1>
+
+<form method="post">
+    <input name="nombre" placeholder="Nombre">
+    <input name="precio" placeholder="Precio">
+    <input name="unidad" placeholder="Unidad">
+    <button>Agregar</button>
+</form>
+
+<table border="1">
+<tr><th>ID</th><th>Nombre</th><th>Precio</th><th>Acción</th></tr>
+
+{% for a in datos %}
+<tr>
+<td>{{a.id}}</td>
+<td>{{a.nombre}}</td>
+<td>{{a.precio}}</td>
+<td><a href="/eliminar_articulo/{{a.id}}">Eliminar</a></td>
+</tr>
+{% endfor %}
+</table>
+
+<a href="/">Volver</a>

@@ -1,0 +1,205 @@
+Traceback (most recent call last):
+  File "C:\Users\casa\source\repos\Coen\prueba web.py", line 791, in <module>
+    app.run(debug=True)
+    ~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\casa\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\app.py", line 662, in run
+    run_simple(t.cast(str, host), port, self, **options)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\casa\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\werkzeug\serving.py", line 1093, in run_simple
+    srv = make_server(
+        hostname,
+    ...<7 lines>...
+        fd=fd,
+    )
+  File "C:\Users\casa\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\werkzeug\serving.py", line 930, in make_server
+    return ThreadedWSGIServer(
+        host, port, app, request_handler, passthrough_errors, ssl_context, fd=fd
+    )
+  File "C:\Users\casa\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\werkzeug\serving.py", line 792, in __init__
+    self.socket = socket.fromfd(fd, address_family, socket.SOCK_STREAM)
+                  ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\casa\AppData\Local\Python\pythoncore-3.14-64\Lib\socket.py", line 554, in fromfd
+    nfd = dup(fd)
+OSError: [WinError 10038] Se intentó realizar una operación en un elemento que no es un socket
+Traceback (most recent call last):
+  File "C:\Users\casa\source\repos\Coen\prueba web.py", line 791, in <module>
+    app.run(debug=True)
+    ~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\casa\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\flask\app.py", line 662, in run
+    run_simple(t.cast(str, host), port, self, **options)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\casa\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\werkzeug\serving.py", line 1093, in run_simple
+    srv = make_server(
+        hostname,
+    ...<7 lines>...
+        fd=fd,
+    )
+  File "C:\Users\casa\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\werkzeug\serving.py", line 930, in make_server
+    return ThreadedWSGIServer(
+        host, port, app, request_handler, passthrough_errors, ssl_context, fd=fd
+    )
+  File "C:\Users\casa\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\werkzeug\serving.py", line 792, in __init__
+    self.socket = socket.fromfd(fd, address_family, socket.SOCK_STREAM)
+                  ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\casa\AppData\Local\Python\pythoncore-3.14-64\Lib\socket.py", line 554, in fromfd
+    nfd = dup(fd)
+OSError: [WinError 10038] Se intentó realizar una operación en un elemento que no es un socket
+Traceback (most recent call last):
+  File "C:\Users\casa\source\repos\Coen\prueba web.py", line 791, in <module>
+    app.run(debug=True)
+    ~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\casa\source\repos\Coen\.venv\Lib\site-packages\flask\app.py", line 662, in run
+    run_simple(t.cast(str, host), port, self, **options)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\casa\source\repos\Coen\.venv\Lib\site-packages\werkzeug\serving.py", line 1093, in run_simple
+    srv = make_server(
+        hostname,
+    ...<7 lines>...
+        fd=fd,
+    )
+  File "C:\Users\casa\source\repos\Coen\.venv\Lib\site-packages\werkzeug\serving.py", line 930, in make_server
+    return ThreadedWSGIServer(
+        host, port, app, request_handler, passthrough_errors, ssl_context, fd=fd
+    )
+  File "C:\Users\casa\source\repos\Coen\.venv\Lib\site-packages\werkzeug\serving.py", line 792, in __init__
+    self.socket = socket.fromfd(fd, address_family, socket.SOCK_STREAM)
+                  ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\casa\AppData\Local\Python\pythoncore-3.14-64\Lib\socket.py", line 554, in fromfd
+    nfd = dup(fd)
+OSError: [WinError 10038] Se intentó realizar una operación en un elemento que no es un socket
+Traceback (most recent call last):
+  File "C:\Users\casa\source\repos\Coen\prueba web.py", line 839, in <module>
+  File "C:\Users\casa\source\repos\Coen\.venv\Lib\site-packages\flask\app.py", line 662, in run
+    run_simple(t.cast(str, host), port, self, **options)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\casa\source\repos\Coen\.venv\Lib\site-packages\werkzeug\serving.py", line 1093, in run_simple
+    srv = make_server(
+        hostname,
+    ...<7 lines>...
+        fd=fd,
+    )
+  File "C:\Users\casa\source\repos\Coen\.venv\Lib\site-packages\werkzeug\serving.py", line 930, in make_server
+    return ThreadedWSGIServer(
+        host, port, app, request_handler, passthrough_errors, ssl_context, fd=fd
+    )
+  File "C:\Users\casa\source\repos\Coen\.venv\Lib\site-packages\werkzeug\serving.py", line 792, in __init__
+    self.socket = socket.fromfd(fd, address_family, socket.SOCK_STREAM)
+                  ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\casa\AppData\Local\Python\pythoncore-3.14-64\Lib\socket.py", line 554, in fromfd
+    nfd = dup(fd)
+OSError: [WinError 10038] Se intentó realizar una operación en un elemento que no es un socket
+Traceback (most recent call last):
+  File "C:\Users\casa\source\repos\Coen\prueba web.py", line 819, in <module>
+    app.run(debug=True)
+    ~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\casa\source\repos\Coen\.venv\Lib\site-packages\flask\app.py", line 662, in run
+    run_simple(t.cast(str, host), port, self, **options)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\casa\source\repos\Coen\.venv\Lib\site-packages\werkzeug\serving.py", line 1093, in run_simple
+    srv = make_server(
+        hostname,
+    ...<7 lines>...
+        fd=fd,
+    )
+  File "C:\Users\casa\source\repos\Coen\.venv\Lib\site-packages\werkzeug\serving.py", line 930, in make_server
+    return ThreadedWSGIServer(
+        host, port, app, request_handler, passthrough_errors, ssl_context, fd=fd
+    )
+  File "C:\Users\casa\source\repos\Coen\.venv\Lib\site-packages\werkzeug\serving.py", line 792, in __init__
+    self.socket = socket.fromfd(fd, address_family, socket.SOCK_STREAM)
+                  ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\casa\AppData\Local\Python\pythoncore-3.14-64\Lib\socket.py", line 554, in fromfd
+    nfd = dup(fd)
+OSError: [WinError 10038] Se intentó realizar una operación en un elemento que no es un socket
+Traceback (most recent call last):
+  File "C:\Users\casa\source\repos\Coen\prueba web.py", line 1080, in <module>
+    app.run(debug=True)
+    ~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\casa\source\repos\Coen\.venv\Lib\site-packages\flask\app.py", line 662, in run
+    run_simple(t.cast(str, host), port, self, **options)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\casa\source\repos\Coen\.venv\Lib\site-packages\werkzeug\serving.py", line 1093, in run_simple
+    srv = make_server(
+        hostname,
+    ...<7 lines>...
+        fd=fd,
+    )
+  File "C:\Users\casa\source\repos\Coen\.venv\Lib\site-packages\werkzeug\serving.py", line 930, in make_server
+    return ThreadedWSGIServer(
+        host, port, app, request_handler, passthrough_errors, ssl_context, fd=fd
+    )
+  File "C:\Users\casa\source\repos\Coen\.venv\Lib\site-packages\werkzeug\serving.py", line 792, in __init__
+    self.socket = socket.fromfd(fd, address_family, socket.SOCK_STREAM)
+                  ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\casa\AppData\Local\Python\pythoncore-3.14-64\Lib\socket.py", line 554, in fromfd
+    nfd = dup(fd)
+OSError: [WinError 10038] Se intentó realizar una operación en un elemento que no es un socket
+Traceback (most recent call last):
+  File "C:\Users\casa\source\repos\Coen\prueba web.py", line 1251, in <module>
+    app.run(debug=True)
+    ~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\casa\source\repos\Coen\.venv\Lib\site-packages\flask\app.py", line 662, in run
+    run_simple(t.cast(str, host), port, self, **options)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\casa\source\repos\Coen\.venv\Lib\site-packages\werkzeug\serving.py", line 1093, in run_simple
+    srv = make_server(
+        hostname,
+    ...<7 lines>...
+        fd=fd,
+    )
+  File "C:\Users\casa\source\repos\Coen\.venv\Lib\site-packages\werkzeug\serving.py", line 930, in make_server
+    return ThreadedWSGIServer(
+        host, port, app, request_handler, passthrough_errors, ssl_context, fd=fd
+    )
+  File "C:\Users\casa\source\repos\Coen\.venv\Lib\site-packages\werkzeug\serving.py", line 792, in __init__
+    self.socket = socket.fromfd(fd, address_family, socket.SOCK_STREAM)
+                  ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\casa\AppData\Local\Python\pythoncore-3.14-64\Lib\socket.py", line 554, in fromfd
+    nfd = dup(fd)
+OSError: [WinError 10038] Se intentó realizar una operación en un elemento que no es un socket
+Traceback (most recent call last):
+  File "C:\Users\casa\source\repos\Coen\prueba web.py", line 1251, in <module>
+    app.run(debug=True)
+    ~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\casa\source\repos\Coen\.venv\Lib\site-packages\flask\app.py", line 662, in run
+    run_simple(t.cast(str, host), port, self, **options)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\casa\source\repos\Coen\.venv\Lib\site-packages\werkzeug\serving.py", line 1093, in run_simple
+    srv = make_server(
+        hostname,
+    ...<7 lines>...
+        fd=fd,
+    )
+  File "C:\Users\casa\source\repos\Coen\.venv\Lib\site-packages\werkzeug\serving.py", line 930, in make_server
+    return ThreadedWSGIServer(
+        host, port, app, request_handler, passthrough_errors, ssl_context, fd=fd
+    )
+  File "C:\Users\casa\source\repos\Coen\.venv\Lib\site-packages\werkzeug\serving.py", line 792, in __init__
+    self.socket = socket.fromfd(fd, address_family, socket.SOCK_STREAM)
+                  ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\casa\AppData\Local\Python\pythoncore-3.14-64\Lib\socket.py", line 554, in fromfd
+    nfd = dup(fd)
+OSError: [WinError 10038] Se intentó realizar una operación en un elemento que no es un socket
+Traceback (most recent call last):
+  File "C:\Users\casa\source\repos\Coen\prueba web.py", line 1455, in <module>
+    app.run(debug=True)
+    ~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\casa\source\repos\Coen\.venv\Lib\site-packages\flask\app.py", line 662, in run
+    run_simple(t.cast(str, host), port, self, **options)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\casa\source\repos\Coen\.venv\Lib\site-packages\werkzeug\serving.py", line 1093, in run_simple
+    srv = make_server(
+        hostname,
+    ...<7 lines>...
+        fd=fd,
+    )
+  File "C:\Users\casa\source\repos\Coen\.venv\Lib\site-packages\werkzeug\serving.py", line 930, in make_server
+    return ThreadedWSGIServer(
+        host, port, app, request_handler, passthrough_errors, ssl_context, fd=fd
+    )
+  File "C:\Users\casa\source\repos\Coen\.venv\Lib\site-packages\werkzeug\serving.py", line 792, in __init__
+    self.socket = socket.fromfd(fd, address_family, socket.SOCK_STREAM)
+                  ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\casa\AppData\Local\Python\pythoncore-3.14-64\Lib\socket.py", line 554, in fromfd
+    nfd = dup(fd)
+OSError: [WinError 10038] Se intentó realizar una operación en un elemento que no es un socket

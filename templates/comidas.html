@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Comidas</h1>
+
+<div class="row">
+  <div class="col-md-4">
+    <form method="post" action="/add_comida" class="mb-3">
+      <div class="mb-2">
+        <label class="form-label">Descripción</label>
+        <input name="descripcion" class="form-control" />
+      </div>
+      <button class="btn btn-primary">Agregar</button>
+    </form>
+
+    <div class="table-responsive">
+      <table class="table table-hover" id="comidas-list">
+        <thead><tr><th>ID</th><th>Descripción</th></tr></thead>
+        <tbody>
+        {% for c in comidas %}
+          <tr data-id="{{ c.id }}"><td>{{ c.id }}</td><td>{{ c.descripcion }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    <h4>Detalle</h4>
+    <form id="detalle-form" method="post" action="/guardar_detalle">
+      <input type="hidden" name="comida_id" id="comida_id" />
+
+      <div id="detalle-rows">
+        <!-- rows inserted by JS -->
+      </div>
+
+      <div class="mt-2">
+        <button type="button" id="add-row" class="btn btn-secondary">Agregar fila</button>
+        <button type="submit" class="btn btn-success">Guardar detalle</button>
+        <a href="#" id="delete-comida" class="btn btn-danger">Eliminar comida</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const articulos = {{ articulos|tojson }};
+const detalles = {{ detalles|tojson }};
+
+function createRow(d) {
+  const div = document.createElement('div');
+  div.className = 'd-flex gap-2 mb-2';
+  div.innerHTML = `
+    <select name="articulo" class="form-select form-select-sm flex-grow-1">
+      <option value="">-</option>
+      ${articulos.map(a=>`<option data-categoria="${a.categoria||''}">${a.nombre}</option>`).join('')}
+    </select>
+    <input name="jov" class="form-control form-control-sm" style="width:80px" placeholder="Jov" value="${d?.cant_jov||''}" />
+    <input name="dor" class="form-control form-control-sm" style="width:80px" placeholder="Dor" value="${d?.cant_dor||''}" />
+    <input name="var" class="form-control form-control-sm" style="width:80px" placeholder="Var" value="${d?.cant_var||''}" />
+    <button type="button" class="btn btn-sm btn-outline-danger remove-row">X</button>
+  `;
+  if (d) div.querySelector('select').value = d.articulo;
+  // ajustar valores según categoria si el artículo tiene categoría
+  const selected = div.querySelector('select').selectedOptions[0];
+  const cat = selected ? selected.dataset.categoria : '';
+  if (cat === 'Dorcas') {
+    // por ejemplo, habilitar solo campo dor
+  }
+  return div;
+}
+
+function clearRows(){ document.getElementById('detalle-rows').innerHTML=''; }
+
+function loadDetalleFor(comidaId){
+  clearRows();
+  document.getElementById('comida_id').value = comidaId;
+  const rows = detalles.filter(r=>r.comida_id==comidaId);
+  for (const r of rows) {
+    document.getElementById('detalle-rows').appendChild(createRow(r));
+  }
+  // one empty row
+  document.getElementById('detalle-rows').appendChild(createRow());
+}
+
+// list click
+for (const row of document.querySelectorAll('#comidas-list tbody tr')){
+  row.addEventListener('click', ()=>{ 
+    for (const x of document.querySelectorAll('#comidas-list tbody tr')) x.classList.remove('table-primary');
+    row.classList.add('table-primary');
+    loadDetalleFor(row.dataset.id);
+  });
+}
+
+// add row button
+document.getElementById('add-row').addEventListener('click', ()=>{
+  document.getElementById('detalle-rows').appendChild(createRow());
+});
+
+// remove row delegate
+document.getElementById('detalle-rows').addEventListener('click', (e)=>{
+  if (e.target.classList.contains('remove-row')) e.target.closest('div').remove();
+});
+
+// delete comida
+document.getElementById('delete-comida').addEventListener('click', (e)=>{
+  e.preventDefault();
+  const id = document.getElementById('comida_id').value;
+  if (!id) return alert('Seleccione una comida');
+  if (!confirm('Confirmar eliminar')) return;
+  fetch(`/eliminar_comida/${id}`).then(()=>location.reload());
+});
+
+// submit: gather arrays (normal form submission handles arrays)
+document.getElementById('detalle-form').addEventListener('submit', (e)=>{
+  // allow default submit
+});
+
+</script>
+
+{% endblock %}

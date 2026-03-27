@@ -1,0 +1,36 @@
+﻿{% extends 'base.html' %}
+{% block content %}
+<h1>Artículos</h1>
+<form method="post" class="row g-2 mb-3">
+  <div class="col-md-6"><input name="nombre" class="form-control" placeholder="Nombre" required></div>
+  <div class="col-md-3"><input name="precio" class="form-control" placeholder="Precio" required></div>
+  <div class="col-md-2"><input name="unidad" class="form-control" placeholder="Unidad"></div>
+  <div class="col-md-1">
+    <select name="categoria" class="form-select">
+      <option value="">Cat</option>
+      <option value="Dorcas">Dorcas</option>
+      <option value="Varones">Varones</option>
+      <option value="Jovenes">Jovenes</option>
+    </select>
+  </div>
+  <div class="col-12">
+    <button class="btn btn-primary">Agregar</button>
+  </div>
+</form>
+
+<table class="table table-striped">
+  <thead><tr><th>ID</th><th>Nombre</th><th>Precio</th><th>Unidad</th><th></th></tr></thead>
+  <tbody>
+    {% for d in datos %}
+    <tr>
+      <td>{{ d.id }}</td>
+      <td>{{ d.nombre }}</td>
+      <td>{{ d.precio }}</td>
+      <td>{{ d.unidad_compra if 'unidad_compra' in d else '' }}</td>
+      <td><a href="/eliminar_articulo/{{ d.id }}" class="btn btn-sm btn-danger">Eliminar</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

@@ -1,0 +1,123 @@
+﻿import sqlite3
+
+class Database:
+    def __init__(self, filename='coen.db'):
+        self.conn = sqlite3.connect(filename, check_same_thread=False)
+        self.conn.row_factory = sqlite3.Row
+        self.cursor = self.conn.cursor()
+        # Enable foreign key support in SQLite
+        self.conn.execute('PRAGMA foreign_keys = ON')
+        self.create_tables()  # 👈 se crean automáticamente
+
+    # ==========================
+    # CREAR TABLAS
+    # ==========================
+    def create_tables(self):
+
+        # Tabla Articulos (usada por la aplicación)
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS Articulos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            precio REAL NOT NULL,
+            unidad_compra TEXT
+        )
+        """)
+
+        # Tabla Eventos
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS Eventos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            cantidad_personas INTEGER,
+            tipo_actividad TEXT
+        )
+        """)
+
+        # Tabla Compras
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS Compras (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT,
+            evento_id INTEGER,
+            FOREIGN KEY (evento_id) REFERENCES Eventos(id) ON DELETE CASCADE
+        )
+        """)
+
+        # Tabla CompraDetalle
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS CompraDetalle (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            compra_id INTEGER,
+            articulo_id INTEGER,
+            cantidad REAL,
+            precio_total REAL,
+            FOREIGN KEY (compra_id) REFERENCES Compras(id) ON DELETE CASCADE,
+            FOREIGN KEY (articulo_id) REFERENCES Articulos(id)
+        )
+        """)
+
+        # Tabla Comidas
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS Comidas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            descripcion TEXT
+        )
+        """)
+
+        # Tabla ComidaDetalle
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS ComidaDetalle (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            comida_id INTEGER,
+            articulo_id INTEGER,
+            cant_jov REAL,
+            cant_dor REAL,
+            cant_var REAL,
+            FOREIGN KEY (comida_id) REFERENCES Comidas(id) ON DELETE CASCADE,
+            FOREIGN KEY (articulo_id) REFERENCES Articulos(id)
+        )
+        """)
+
+        # Tabla Tesoreria
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS Tesoreria (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            evento_id INTEGER,
+            motivo TEXT,
+            monto REAL,
+            FOREIGN KEY (evento_id) REFERENCES Eventos(id) ON DELETE SET NULL
+        )
+        """)
+
+        self.conn.commit()
+
+    # ==========================
+    # EJECUTAR (INSERT, UPDATE, DELETE)
+    # ==========================
+    def execute(self, query, params=()):
+        self.cursor.execute(query, params)
+        self.conn.commit()
+        return self.cursor.lastrowid
+
+    # ==========================
+    # OBTENER MUCHOS
+    # ==========================
+    def fetchall(self, query, params=()):
+        self.cursor.execute(query, params)
+        rows = self.cursor.fetchall()
+        return [dict(row) for row in rows]
+
+    # ==========================
+    # OBTENER UNO
+    # ==========================
+    def fetchone(self, query, params=()):
+        self.cursor.execute(query, params)
+        row = self.cursor.fetchone()
+        return dict(row) if row else None
+
+    # ==========================
+    # CERRAR CONEXIÓN
+    # ==========================
+    def close(self):
+        self.conn.close()

@@ -1,0 +1,42 @@
+﻿{% extends 'base.html' %}
+{% block content %}
+<h1>Tesorería</h1>
+
+<form method="post" class="row g-2 mb-3">
+  <div class="col-md-4">
+    <label class="form-label">Evento</label>
+    <select name="evento" class="form-select">
+      <option value="">-</option>
+      {% for e in eventos %}
+      <option value="{{e.id}}">{{e.nombre}}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-4">
+    <label class="form-label">Motivo</label>
+    <input name="motivo" class="form-control" placeholder="Motivo">
+  </div>
+  <div class="col-md-4">
+    <label class="form-label">Monto</label>
+    <input name="monto" class="form-control" placeholder="Monto">
+  </div>
+  <div class="col-12">
+    <button class="btn btn-primary mt-2">Agregar</button>
+  </div>
+</form>
+
+<table class="table table-sm">
+  <thead><tr><th>ID</th><th>Evento</th><th>Motivo</th><th>Monto</th></tr></thead>
+  <tbody>
+  {% for t in datos %}
+  <tr>
+    <td>{{ t.id }}</td>
+    <td>{{ t.evento_id }}</td>
+    <td>{{ t.motivo }}</td>
+    <td>{{ t.monto }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}
