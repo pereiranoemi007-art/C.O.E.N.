@@ -1,9 +1,0 @@
-{% extends 'base.html' %}
-{% block content %}
-<h1>Pagos</h1>
-<ul>
-  {% for e in eventos %}
-  <li><a href="/pagos/{{ e.id }}">{{ e.nombre }}</a></li>
-  {% endfor %}
-</ul>
-{% endblock %}
